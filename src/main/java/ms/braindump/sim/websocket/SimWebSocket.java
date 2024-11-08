@@ -1,15 +1,22 @@
 package ms.braindump.sim.websocket;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import io.quarkus.vertx.ConsumeEvent;
 import io.quarkus.websockets.next.*;
+import jakarta.annotation.Nullable;
+import jakarta.enterprise.context.ApplicationScoped;
+import ms.braindump.sim.game.GameServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebSocket(path = "/messaging")
+@ApplicationScoped
 public class SimWebSocket {
 
     public enum CommandType {
-        STATUS
+        STATUS,
+        START,
+        STOP
     }
 
     public enum ResponseType {
@@ -21,15 +28,15 @@ public class SimWebSocket {
     }
 
     @RegisterForReflection
-    public record SimResponse(ResponseType type, String payload) {
+    public record SimResponse(ResponseType type, Object payload) {
     }
 
     private static final Logger log = LoggerFactory.getLogger(SimWebSocket.class);
 
-    private final WebSocketConnection connection;
+    private final GameServer gameServer;
 
-    public SimWebSocket(final WebSocketConnection connection) {
-        this.connection = connection;
+    public SimWebSocket(final GameServer gameServer) {
+        this.gameServer = gameServer;
     }
 
     @OnOpen
@@ -53,10 +60,20 @@ public class SimWebSocket {
         switch (command.type) {
             case STATUS -> {
                 log.debug("Status type received with payload {}", command.payload);
-                response = new SimResponse(ResponseType.STATUS, command.payload);
+                response = new SimResponse(ResponseType.STATUS, gameServer.getNodes());
+            }
+            case START -> {
+                log.debug("Start Sim command received");
+                gameServer.start();
+                response = new SimResponse(ResponseType.STATUS, gameServer.getNodes());
+            }
+            case STOP -> {
+                log.debug("Stop Sim command received");
+                gameServer.stop();
+                response = new SimResponse(ResponseType.STATUS, gameServer.getNodes());
             }
             default -> {
-                log.error("Unkown type received.");
+                log.error("Unknown type received.");
                 response = new SimResponse(ResponseType.STATUS, "Error");
             }
         }
