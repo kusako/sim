@@ -3,15 +3,17 @@ package ms.braindump.sim.websocket;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.vertx.ConsumeEvent;
 import io.quarkus.websockets.next.*;
-import jakarta.annotation.Nullable;
-import jakarta.enterprise.context.ApplicationScoped;
+import io.smallrye.common.annotation.Blocking;
+import jakarta.inject.Inject;
 import ms.braindump.sim.game.GameServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebSocket(path = "/messaging")
-@ApplicationScoped
 public class SimWebSocket {
+
+    @Inject
+    OpenConnections connections;
 
     public enum CommandType {
         STATUS,
@@ -52,6 +54,13 @@ public class SimWebSocket {
     @OnError
     public void onError(final Throwable error) {
         log.debug("Error occured.", error);
+    }
+
+    @ConsumeEvent("tick")
+    @Blocking
+    void ticked(final String message) {
+        final var response = new SimResponse(ResponseType.STATUS, gameServer.getNodes());
+        connections.forEach(c -> c.sendTextAndAwait(response));
     }
 
     @OnTextMessage
