@@ -1,9 +1,9 @@
 package ms.braindump.sim.game;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
+import jakarta.annotation.Nonnull;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import ms.braindump.sim.webservice.RemoteNode;
 import ms.braindump.sim.webservice.TestNode;
 import org.slf4j.Logger;
@@ -12,18 +12,19 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @ApplicationScoped
 public class GameServer {
 
     private static final Logger log = LoggerFactory.getLogger(GameServer.class);
-    @Inject
-    private EventBus eventBus;
+    private final EventBus eventBus;
 
     private List<RemoteNode> nodes;
     private boolean isRunning;
 
-    public GameServer() {
+    public GameServer(@Nonnull final EventBus eventBus) {
+        this.eventBus = eventBus;
         log.debug("Construct GameServer.");
     }
 
@@ -48,8 +49,18 @@ public class GameServer {
         log.debug("Init GameServer");
 
         this.nodes = new ArrayList<>();
-        final var testNode = new TestNode(UUID.randomUUID().toString(), "Agent", new RemoteNode.Position(0, 0), new RemoteNode.Velocity(10, 10));
-        nodes.add(testNode);
+        for (int i = 0; i < 10; i++) {
+            final var testNode = new TestNode(
+                    UUID.randomUUID().toString(),
+                    "Agent",
+                    new RemoteNode.Position(random(0, 999), random(0, 999)),
+                    new RemoteNode.Velocity(random(-20, 20), random(-20, 20)));
+            nodes.add(testNode);
+        }
+    }
+
+    private int random(final int min, final int max) {
+        return ThreadLocalRandom.current().nextInt(min, max);
     }
 
     class MainLoop implements Runnable {

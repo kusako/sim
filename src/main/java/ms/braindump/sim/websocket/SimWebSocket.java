@@ -4,16 +4,18 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.vertx.ConsumeEvent;
 import io.quarkus.websockets.next.*;
 import io.smallrye.common.annotation.Blocking;
-import jakarta.inject.Inject;
+import jakarta.annotation.Nonnull;
 import ms.braindump.sim.game.GameServer;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebSocket(path = "/messaging")
 public class SimWebSocket {
 
-    @Inject
-    OpenConnections connections;
+    @ConfigProperty(name = "quarkus.websockets-next.server.max-message-size")
+    String messageSize;
+    private final OpenConnections connections;
 
     public enum CommandType {
         STATUS,
@@ -37,8 +39,9 @@ public class SimWebSocket {
 
     private final GameServer gameServer;
 
-    public SimWebSocket(final GameServer gameServer) {
+    public SimWebSocket(@Nonnull final GameServer gameServer, @Nonnull final OpenConnections connections) {
         this.gameServer = gameServer;
+        this.connections = connections;
     }
 
     @OnOpen
@@ -59,12 +62,13 @@ public class SimWebSocket {
     @ConsumeEvent("tick")
     @Blocking
     void ticked(final String message) {
-        final var response = new SimResponse(ResponseType.STATUS, gameServer.getNodes());
-        connections.forEach(c -> c.sendTextAndAwait(response));
+        //final var response = new SimResponse(ResponseType.STATUS, gameServer.getNodes());
+        //connections.forEach(c -> c.sendTextAndAwait(response));
     }
 
     @OnTextMessage
     public SimResponse onTextMessage(final SimCommand command) {
+        log.debug("Max Message Size: {}", messageSize);
         final SimResponse response;
         switch (command.type) {
             case STATUS -> {

@@ -1,12 +1,14 @@
 package ms.braindump.sim.webservice;
 
+import jakarta.annotation.Nonnull;
+
 public class RemoteNode {
     private String uuid;
     private String scene;
     private Position position;
     private Velocity velocity;
 
-    public RemoteNode(String uuid, String scene, Position position, Velocity velocity) {
+    public RemoteNode(@Nonnull final String uuid, @Nonnull final String scene, @Nonnull final Position position, @Nonnull final Velocity velocity) {
         this.uuid = uuid;
         this.scene = scene;
         this.position = position;
@@ -22,7 +24,7 @@ public class RemoteNode {
     }
 
 
-    public void setPosition(Position position) {
+    public void setPosition(@Nonnull final Position position) {
         this.position = position;
     }
 
@@ -30,7 +32,7 @@ public class RemoteNode {
         return position;
     }
 
-    public void setVelocity(Velocity velocity) {
+    public void setVelocity(@Nonnull final Velocity velocity) {
         this.velocity = velocity;
     }
 
@@ -42,7 +44,7 @@ public class RemoteNode {
         return scene;
     }
 
-    public void setScene(String scene) {
+    public void setScene(@Nonnull final String scene) {
         this.scene = scene;
     }
 
@@ -52,10 +54,7 @@ public class RemoteNode {
     public record Position(double x, double y) {
     }
 
-    ;
-
     public record Velocity(double x, double y) {
     }
 
-    ;
 }
