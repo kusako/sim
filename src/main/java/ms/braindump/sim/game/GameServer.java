@@ -54,7 +54,7 @@ public class GameServer {
                     UUID.randomUUID().toString(),
                     "Agent",
                     new RemoteNode.Position(random(0, 999), random(0, 999)),
-                    new RemoteNode.Velocity(random(-20, 20), random(-20, 20)));
+                    new RemoteNode.Velocity(random(-200, 200), random(-200, 200)));
             nodes.add(testNode);
         }
     }
@@ -78,7 +78,7 @@ public class GameServer {
                 eventBus.publish("tick", "");
                 processingTime = System.nanoTime() - time;
                 log.debug("Processing: {}.", processingTime);
-                while (System.nanoTime() - time < 1_000_000_000) {
+                while (System.nanoTime() - time < 1_000_000_000D / 60D) {
                     //
                 }
             }
